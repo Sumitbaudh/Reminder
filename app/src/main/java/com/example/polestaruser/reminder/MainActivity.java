@@ -31,8 +31,20 @@ import android.widget.EditText;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.DexterError;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.PermissionRequestErrorListener;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
+import com.karumi.dexter.listener.single.PermissionListener;
+
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,85 +72,190 @@ public class MainActivity extends AppCompatActivity {
         set=findViewById(R.id.set);
         chooseTime=findViewById(R.id.pickerTime);
         permissionStatus = getSharedPreferences("permissionStatus",MODE_PRIVATE);
-        listAllContacts=new ArrayList<>();
-        //getContactList();
+
+      /*  if(ActivityCompat.checkSelfPermission(MainActivity.this, permissionsRequired[0]) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(MainActivity.this, permissionsRequired[1]) != PackageManager.PERMISSION_GRANTED){
+            if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,permissionsRequired[0])
+                    || ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,permissionsRequired[1])){
+                //Show Information about why you need the permission
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Need Multiple Permissions");
+                builder.setMessage("This app needs Media and Contact permissions.");
+                builder.setPositiveButton("Grant", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        ActivityCompat.requestPermissions(MainActivity.this,permissionsRequired,PERMISSION_CALLBACK_CONSTANT);
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                builder.show();
+            } else if (permissionStatus.getBoolean(permissionsRequired[0],false)) {
+                //Previously Permission Request was cancelled with 'Dont Ask Again',
+                // Redirect to Settings after showing Information about why you need the permission
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Need Multiple Permissions");
+                builder.setMessage("This app needs Camera and Location permissions.");
+                builder.setPositiveButton("Grant", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        sentToSettings = true;
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivityForResult(intent, REQUEST_PERMISSION_SETTING);
+                        Toast.makeText(getBaseContext(), "Go to Permissions to Grant  Contact and Location", Toast.LENGTH_LONG).show();
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                builder.show();
+            }  else {
+                //just request the permission
+                ActivityCompat.requestPermissions(MainActivity.this,permissionsRequired,PERMISSION_CALLBACK_CONSTANT);
+            }
+
+            //txtPermissions.setText("Permissions Required");
+
+            SharedPreferences.Editor editor = permissionStatus.edit();
+            editor.putBoolean(permissionsRequired[0],true);
+            editor.commit();
+        } else {
+            //You already have the permission, just go ahead.
+            ///proceedAfterPermission(mob_number,sms_text);
+            //setAlarm(mob_number,sms_text);
+            getContactList();
+        }*/
+
+
 
         set.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mob_number=mnumber.getText().toString();
-                sms_text=msg.getText().toString();
-
-
-                if(ActivityCompat.checkSelfPermission(MainActivity.this, permissionsRequired[0]) != PackageManager.PERMISSION_GRANTED
-                        || ActivityCompat.checkSelfPermission(MainActivity.this, permissionsRequired[1]) != PackageManager.PERMISSION_GRANTED){
-                    if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,permissionsRequired[0])
-                            || ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,permissionsRequired[1])){
-                        //Show Information about why you need the permission
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setTitle("Need Multiple Permissions");
-                        builder.setMessage("This app needs Camera and Location permissions.");
-                        builder.setPositiveButton("Grant", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                                ActivityCompat.requestPermissions(MainActivity.this,permissionsRequired,PERMISSION_CALLBACK_CONSTANT);
-                            }
-                        });
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-                        builder.show();
-                    } else if (permissionStatus.getBoolean(permissionsRequired[0],false)) {
-                        //Previously Permission Request was cancelled with 'Dont Ask Again',
-                        // Redirect to Settings after showing Information about why you need the permission
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setTitle("Need Multiple Permissions");
-                        builder.setMessage("This app needs Camera and Location permissions.");
-                        builder.setPositiveButton("Grant", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                                sentToSettings = true;
-                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                Uri uri = Uri.fromParts("package", getPackageName(), null);
-                                intent.setData(uri);
-                                startActivityForResult(intent, REQUEST_PERMISSION_SETTING);
-                                Toast.makeText(getBaseContext(), "Go to Permissions to Grant  Camera and Location", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-                        builder.show();
-                    }  else {
-                        //just request the permission
-                        ActivityCompat.requestPermissions(MainActivity.this,permissionsRequired,PERMISSION_CALLBACK_CONSTANT);
-                    }
-
-                    //txtPermissions.setText("Permissions Required");
-
-                    SharedPreferences.Editor editor = permissionStatus.edit();
-                    editor.putBoolean(permissionsRequired[0],true);
-                    editor.commit();
-                } else {
-                    //You already have the permission, just go ahead.
-                    proceedAfterPermission(mob_number,sms_text);
-                    setAlarm(mob_number,sms_text);
-                }
-
+                requestSMSPermission();
             }
         });
 
 
     }
-    @Override
+
+    private void requestSMSPermission() {
+        Dexter.withActivity(this)
+                .withPermissions(Manifest.permission.SEND_SMS,
+                        Manifest.permission.READ_PHONE_STATE)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        // check if all permissions are granted
+                        if (report.areAllPermissionsGranted()) {
+                            Toast.makeText(getApplicationContext(), "All permissions are granted!", Toast.LENGTH_SHORT).show();
+                            sms_text=msg.getText().toString();
+                            mob_number=mnumber.getText().toString();
+                            if(sms_text.length()==0||mob_number.length()<10)
+                            {
+                                Toast.makeText(MainActivity.this, "Please check entered mobile number", Toast.LENGTH_SHORT).show();
+                                //Toast.makeText(this,"Please check entered mobile number", Toast.LENGTH_SHORT).show();
+                            }else {
+                                setAlarm(mob_number,sms_text);
+                            }
+
+                        }
+
+                        // check for permanent denial of any permission
+                        if (report.isAnyPermissionPermanentlyDenied()) {
+                            // show alert dialog navigating to Settings
+                            showSettingsDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).
+                withErrorListener(new PermissionRequestErrorListener() {
+                    @Override
+                    public void onError(DexterError error) {
+                        Toast.makeText(getApplicationContext(), "Error occurred! ", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .onSameThread()
+                .check();
+    }
+
+    private boolean requestContactPermission() {
+        Dexter.withActivity(this)
+                .withPermission(Manifest.permission.READ_CONTACTS)
+                .withListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        // permission is granted
+                        getContactList();
+                        if (listAllContacts == null) {
+                            Toast.makeText(MainActivity.this, "Please provide Permissions", Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            Intent intent = new Intent(MainActivity.this, ContactList.class);
+                            intent.putExtra("ContactList", listAllContacts);
+                            startActivity(intent);
+                        }
+                        //return true;
+                    }
+
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
+                        // check for permanent denial of permission
+                        if (response.isPermanentlyDenied()) {
+                            showSettingsDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
+        return true;
+    }
+
+    private void showSettingsDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Need Permissions");
+        builder.setMessage("This app needs permission to use this feature. You can grant them in app settings.");
+        builder.setPositiveButton("GOTO SETTINGS", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                openSettings();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+
+    private void openSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivityForResult(intent, 101);
+    }
+
+/*
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode == PERMISSION_CALLBACK_CONSTANT){
@@ -155,13 +272,14 @@ public class MainActivity extends AppCompatActivity {
 
             if(allgranted){
                 proceedAfterPermission(mob_number,sms_text);
-                setAlarm(mob_number,sms_text);
+                //setAlarm(mob_number,sms_text);
+                getContactList();
             } else if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,permissionsRequired[0])
                     || ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,permissionsRequired[1])){
                 //txtPermissions.setText("Permissions Required");
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Need Multiple Permissions");
-                builder.setMessage("This app needs Camera and Location permissions.");
+                builder.setMessage("This app needs Media and Contact permissions.");
                 builder.setPositiveButton("Grant", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -181,19 +299,21 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+*/
 
-    @Override
+  /*  @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_PERMISSION_SETTING) {
             if (ActivityCompat.checkSelfPermission(MainActivity.this, permissionsRequired[0]) == PackageManager.PERMISSION_GRANTED) {
                 //Got Permission
-                proceedAfterPermission(mob_number,sms_text);
-                setAlarm(mob_number,sms_text);
+               // proceedAfterPermission(mob_number,sms_text);
+                //setAlarm(mob_number,sms_text);
+                getContactList();
             }
         }
     }
-
+*/
     private void proceedAfterPermission(String number ,String SMStext){
 
         String SENT = "SMS_SENT";
@@ -261,6 +381,7 @@ public class MainActivity extends AppCompatActivity {
             SmsManager.getDefault().sendTextMessage(number, null, SMStext, sentPI, deliveredPI);
         }
     }
+
     @TargetApi(23)
     private void setAlarm(String number,String SMStext){
         alarmMgr = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
@@ -269,8 +390,9 @@ public class MainActivity extends AppCompatActivity {
         //int hour=chooseTime.getHour();
         intent.putExtra("mobile_number",number);
         intent.putExtra("sms_msg",SMStext);
+        intent.putExtra("SIM",1);
         alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-        getContactList();
+        //getContactList();
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.set(Calendar.HOUR_OF_DAY, chooseTime.getHour());
@@ -283,6 +405,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void getContactList() {
         ContentResolver cr = getContentResolver();
+        listAllContacts=new ArrayList<>();
         Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
                 null, null, null, null);
 
@@ -308,6 +431,7 @@ public class MainActivity extends AppCompatActivity {
                         singleContact.setPersonNumber(phoneNo);
                       /*  Log.i(TAG, "Name: " + name);
                         Log.i(TAG, "Phone Number: " + phoneNo);*/
+
                       listAllContacts.add(singleContact);
                     }
                     pCur.close();
@@ -321,15 +445,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void imgContactList(View view) {
+        requestContactPermission();
 
-        if(listAllContacts==null){
-            Toast.makeText(this, "Please provide Permissions", Toast.LENGTH_SHORT).show();
-        }
-        else{
-            Intent intent=new Intent(MainActivity.this,ContactList.class);
-            intent.putExtra("ContactList",listAllContacts);
-            startActivity(intent);
-        }
+
     }
 }
 
